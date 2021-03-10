@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "OnLocationResult: " + location.toString());
                 TextView textView = findViewById(R.id.location);
                 textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude());
+                //test commit
             }
         }
     };
