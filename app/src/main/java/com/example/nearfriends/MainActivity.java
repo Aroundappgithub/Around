@@ -31,6 +31,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.util.ArrayList;
+
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 public class MainActivity extends AppCompatActivity {
@@ -41,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     FusedLocationProviderClient fusedLocationProviderClient;
     LocationRequest locationRequest;
 
+    int updateCounter = 0;
+    //Locations stored in a location callback
     LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
@@ -49,10 +53,13 @@ public class MainActivity extends AppCompatActivity {
             }
             //Loop through locationResult list of locations
             for (Location location : locationResult.getLocations()) {
+                boolean withinMyRange = compareMyLocation(location.getLatitude(),location.getLongitude());
+
+
                 Log.d(TAG, "OnLocationResult: " + location.toString());
                 TextView textView = findViewById(R.id.location);
-                textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude());
-                //test commit
+                textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude()+"\nUpdate Counter = "+updateCounter);
+                updateCounter++;
             }
         }
     };
@@ -69,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         //Create a LocationRequest, set update interval to 10 secs (minimum update of 5 secs), set priority to high
         locationRequest = LocationRequest.create();
-        locationRequest.setInterval(10000);
-        locationRequest.setFastestInterval(5000);
+        locationRequest.setInterval(2000);
+        locationRequest.setFastestInterval(1000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
@@ -195,5 +202,23 @@ public class MainActivity extends AppCompatActivity {
                 //permission not granted - add logic to handle location not granted
             }
         }
+    }
+
+    /**
+     * Compare user's most recent location coordinates to contacts.
+     * @param myLat user's latest latitude coordinate
+     * @param myLong user's latest longitude coordinate
+     * @return contacts that are within user's range
+     */
+    private boolean compareMyLocation(double myLat, double myLong){
+        boolean result = true;
+        //call to contacts list, for now call fake list
+        ArrayList<Contact> contactArrayList = new ArrayList<Contact>();
+        return result;
+    }
+
+    private double[][] getContactLocations(){
+        double[][] locations = new double[0][0];
+        return locations;
     }
 }
