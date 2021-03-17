@@ -31,7 +31,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static java.lang.Math.*;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
@@ -44,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     LocationRequest locationRequest;
 
     int updateCounter = 0;
+    //need to set myRange upon initialization of app, update when changed
+    double myRange = 100.00;
     //Locations stored in a location callback
     LocationCallback locationCallback = new LocationCallback() {
         @Override
@@ -53,7 +60,8 @@ public class MainActivity extends AppCompatActivity {
             }
             //Loop through locationResult list of locations
             for (Location location : locationResult.getLocations()) {
-                boolean withinMyRange = compareMyLocation(location.getLatitude(),location.getLongitude());
+                //list of contacts within my range
+                ArrayList<Contact> withinMyRange = compareMyLocation(location.getLatitude(),location.getLongitude(), myRange);
 
 
                 Log.d(TAG, "OnLocationResult: " + location.toString());
@@ -210,15 +218,42 @@ public class MainActivity extends AppCompatActivity {
      * @param myLong user's latest longitude coordinate
      * @return contacts that are within user's range
      */
-    private boolean compareMyLocation(double myLat, double myLong){
-        boolean result = true;
-        //call to contacts list, for now call fake list
-        ArrayList<Contact> contactArrayList = new ArrayList<Contact>();
-        return result;
+    private ArrayList<Contact> compareMyLocation(double myLat, double myLong, double range){
+        ArrayList<Contact> inRangeContacts = new ArrayList<Contact>();
+        ArrayList<Contact> contactArrayList = getContactList();
+        for (Contact contact : contactArrayList) {
+            double distance = haversineFormula(myLat,myLong,contact.getLatitude(),contact.getLongitude());
+            TextView textView = findViewById(R.id.distance);
+            textView.setText("distance from contact: "+distance);
+        }
+        return inRangeContacts;
     }
 
-    private double[][] getContactLocations(){
-        double[][] locations = new double[0][0];
-        return locations;
+    /**
+     * This method shall stream Contact objects into an ArrayList
+     * that will be used by the caller to store in a hashmap...
+     * Do i even need a hashmap? Can I reference the first index of the ArrayList?
+     * @return ArrayList of contact information
+     */
+    private ArrayList<Contact> getContactList(){
+        //Create fake map with locations
+        ArrayList<Contact> contactArrayList = new ArrayList<Contact>();
+        contactArrayList.add(new Contact("Isabella Murmann","Richmond", "Virginia", 37.562457, -77.473087));
+        return contactArrayList;
+    }
+
+    private double haversineFormula(double myLat, double myLong, double theirLat, double theirLong){
+        double toRadian = PI/180;
+        double theirLatitudeInRadians = theirLat*toRadian;
+        double theirLongitudeInRadians = theirLong*toRadian;
+        double myLatitudeInRadians = myLat*toRadian;
+        double myLongitudeInRadians = myLong*toRadian;
+
+        double R = 6371000; //in meters
+        double meterToMile = 0.000621371;
+        double a = pow(sin((theirLatitudeInRadians-myLatitudeInRadians)/2),2)+cos(myLatitudeInRadians)*cos(theirLatitudeInRadians)*pow(sin((theirLongitudeInRadians-theirLongitudeInRadians)/2),2);
+        double c = 2*atan2(sqrt(a),sqrt((1-a)));
+        double d = R*c*meterToMile;
+        return d;
     }
 }

@@ -9,18 +9,29 @@ package com.example.nearfriends;
  * @version 1.0
  */
 public class Contact {
+    private String name;
     private String city;
     private String state;
     private double latitude;
     private double longitude;
 
-    public Contact(String city, String state, double latitude, double longitude){
+    public Contact(String name, String city, String state, double latitude, double longitude) {
+        this.name = name;
         this.city = city;
         this.state = state;
         this.latitude = latitude;
         this.longitude = longitude;
     }
 
+    /**
+     * @return contact name
+     */
+    public String getName(){ return name; }
+
+    /**
+     * @param name
+     */
+    public void setName(String name){ this.name = name; }
     /**
      * @return city name
      */
