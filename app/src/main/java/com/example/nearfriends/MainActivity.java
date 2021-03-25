@@ -1,7 +1,5 @@
 package com.example.nearfriends;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -10,11 +8,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public class MainActivity extends AppCompatActivity {
 
     private EditText rangeValue;
     private Button submitRangeButton;
-    private double doubleRange;
+    private Button contactsActivityButton;
 
     /**
      * Initialize home screen activity
@@ -24,6 +24,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Contact list test implementation
+        contactsActivityButton = (Button) findViewById(R.id.contactsActivityButton);
+        contactsActivityButton.setOnClickListener(view -> {
+            Intent contactsIntent = new Intent(this, ContactsListActivity.class);
+            startActivity(contactsIntent);
+        });
+
+
+        //Range value entry, submit button action, and Activity 2 trigger
         submitRangeButton = (Button) findViewById(R.id.submitRangeButton);
         submitRangeButton.setEnabled(false);
         rangeValue = (EditText) findViewById(R.id.rangeValue);
@@ -32,11 +42,7 @@ public class MainActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 if (start > 0 || after > 0) {
                     submitRangeButton.setEnabled(true);
-                    submitRangeButton.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View view) {
-                            openActivity2(rangeValue);
-                        }
-                    });
+                    submitRangeButton.setOnClickListener(view -> openActivity2(rangeValue));
                 } else {
                     submitRangeButton.setEnabled(false);
                 }
