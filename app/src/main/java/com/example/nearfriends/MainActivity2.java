@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -41,7 +42,7 @@ import static java.lang.Math.sqrt;
 
 public class MainActivity2 extends AppCompatActivity {
     private static final String TAG = "MainActivity2";
-    int LOCATION_REQUEST_CODE = 10001;
+    final int LOCATION_REQUEST_CODE = 10001;
 
     FusedLocationProviderClient fusedLocationProviderClient;
     LocationRequest locationRequest;
@@ -60,20 +61,20 @@ public class MainActivity2 extends AppCompatActivity {
             for (Location location : locationResult.getLocations()) {
                 //list of contacts within my range
                 myRange = Double.valueOf(getIntent().getStringExtra("range value"));
-                System.out.println("Setting myRange: "+myRange);
-                ArrayList<Contact> withinMyRange = compareMyLocation(location.getLatitude(),location.getLongitude(), myRange);
+                System.out.println("Setting myRange: " + myRange);
+                ArrayList<Contact> withinMyRange = compareMyLocation(location.getLatitude(), location.getLongitude(), myRange);
                 TextView distance = findViewById(R.id.distance);
                 StringBuilder distanceBuilder = new StringBuilder("Contacts within range: \n");
-                for (Contact contact:withinMyRange) {
+                for (Contact contact : withinMyRange) {
                     //syntax is not efficient with large lists, use .append().append()...
-                    distanceBuilder.append(contact.getName()+ "-distance: "+contact.getDistance().getAsDouble()+"\n");
+                    distanceBuilder.append(contact.getName() + "-distance: " + contact.getDistance().getAsDouble() + "\n");
                 }
                 System.out.println(distanceBuilder);
                 distance.setText(distanceBuilder);
 
                 Log.d(TAG, "OnLocationResult: " + location.toString());
                 TextView textView = findViewById(R.id.location);
-                textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude()+"\nUpdate Counter = "+updateCounter+"\nmy range: "+myRange);
+                textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude() + "\nUpdate Counter = " + updateCounter + "\nmy range: " + myRange);
                 updateCounter++;
             }
         }
@@ -188,44 +189,62 @@ public class MainActivity2 extends AppCompatActivity {
 
     /**
      * Asks user for location permission.
-     *
+     * <p>
      * Needs further development
      */
     private void askLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION)) {
-                Log.d(TAG, "askLocationPermission: you should show and alert dialog..."); //implement a button to request location
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
                 ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
-            } else {
+            }else{
+                //No explanation needed, we can request the permission
                 ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
             }
         }
     }
 
-    public void onRequestPermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == LOCATION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //permission granted
-//                getLastLocation();  //call last location since permission is granted
-                checkSettingsAndStartLocationUpdates(); //start location updates
-            } else {
-                //permission not granted - add logic to handle location not granted
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case LOCATION_REQUEST_CODE : {
+                //If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    //permission was granted, start location updates
+                    Toast.makeText(getApplicationContext(), "Permission granted", Toast.LENGTH_SHORT).show();
+                    checkSettingsAndStartLocationUpdates();
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(getApplicationContext(), "Permission denied, we need permissions to operate", Toast.LENGTH_SHORT).show();
+                }
+                return;
             }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
         }
     }
 
     /**
      * Compare user's most recent location coordinates to contacts.
-     * @param myLat user's latest latitude coordinate
+     *
+     * @param myLat  user's latest latitude coordinate
      * @param myLong user's latest longitude coordinate
      * @return contacts that are within user's range
      */
-    private ArrayList<Contact> compareMyLocation(double myLat, double myLong, double range){
+    private ArrayList<Contact> compareMyLocation(double myLat, double myLong, double range) {
         ArrayList<Contact> inRangeContacts = new ArrayList<Contact>();
         ArrayList<Contact> contactArrayList = getContactList();
         for (Contact contact : contactArrayList) {
-            double distance = haversineFormula(myLat,myLong,contact.getLatitude(),contact.getLongitude());
-            if(distance<=range){
+            double distance = haversineFormula(myLat, myLong, contact.getLatitude(), contact.getLongitude());
+            if (distance <= range) {
                 contact.setDistance(OptionalDouble.of(distance));
                 inRangeContacts.add(contact);
             }
@@ -237,29 +256,31 @@ public class MainActivity2 extends AppCompatActivity {
      * This method shall stream Contact objects into an ArrayList
      * that will be used by the caller to store in a hashmap...
      * Do i even need a hashmap? Can I reference the first index of the ArrayList?
+     *
      * @return ArrayList of contact information
      */
-    private ArrayList<Contact> getContactList(){
+    private ArrayList<Contact> getContactList() {
         //Create fake map with locations
         ArrayList<Contact> contactArrayList = new ArrayList<Contact>();
-        contactArrayList.add(new Contact("Isabella Murmann","Richmond", "Virginia", 37.562457, -77.473087, null));
-        contactArrayList.add(new Contact("Bobby Shmurda", "Reston", "Virginia", 38.9586, -77.3570,null));
+        contactArrayList.add(new Contact("Isabella Murmann", "Richmond", "Virginia", 37.562457, -77.473087, null));
+        contactArrayList.add(new Contact("Bobby Shmurda", "Reston", "Virginia", 38.9586, -77.3570, null));
         //add contact without specified address, use city center as coordinates
         return contactArrayList;
     }
 
-    private double haversineFormula(double myLat, double myLong, double theirLat, double theirLong){
-        double toRadian = PI/180;
-        double theirLatitudeInRadians = theirLat*toRadian;
-        double theirLongitudeInRadians = theirLong*toRadian;
-        double myLatitudeInRadians = myLat*toRadian;
-        double myLongitudeInRadians = myLong*toRadian;
+    private double haversineFormula(double myLat, double myLong, double theirLat,
+                                    double theirLong) {
+        double toRadian = PI / 180;
+        double theirLatitudeInRadians = theirLat * toRadian;
+        double theirLongitudeInRadians = theirLong * toRadian;
+        double myLatitudeInRadians = myLat * toRadian;
+        double myLongitudeInRadians = myLong * toRadian;
 
         double R = 6371000; //in meters
         double meterToMile = 0.000621371;
-        double a = pow(sin((theirLatitudeInRadians-myLatitudeInRadians)/2),2)+cos(myLatitudeInRadians)*cos(theirLatitudeInRadians)*pow(sin((theirLongitudeInRadians-theirLongitudeInRadians)/2),2);
-        double c = 2*atan2(sqrt(a),sqrt((1-a)));
-        double d = R*c*meterToMile;
+        double a = pow(sin((theirLatitudeInRadians - myLatitudeInRadians) / 2), 2) + cos(myLatitudeInRadians) * cos(theirLatitudeInRadians) * pow(sin((theirLongitudeInRadians - theirLongitudeInRadians) / 2), 2);
+        double c = 2 * atan2(sqrt(a), sqrt((1 - a)));
+        double d = R * c * meterToMile;
         return d;
     }
 }

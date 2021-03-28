@@ -40,4 +40,14 @@
         app:layout_constraintTop_toBottomOf="@+id/rangeValue"
         app:layout_constraintVertical_bias="0.163" />
 
+    <Button
+        android:id="@+id/contactsActivityButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Contacts"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/submitRangeButton" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
