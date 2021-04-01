@@ -8,10 +8,15 @@ import androidx.core.content.ContextCompat;
 import android.annotation.SuppressLint;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,11 +33,13 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.OptionalDouble;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.READ_CONTACTS;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
@@ -42,7 +49,7 @@ import static java.lang.Math.sqrt;
 
 public class MainActivity2 extends AppCompatActivity {
     private static final String TAG = "MainActivity2";
-    final int LOCATION_REQUEST_CODE = 10001;
+    private static final int PERMISSIONS_REQUEST_CODE = 10001;
 
     FusedLocationProviderClient fusedLocationProviderClient;
     LocationRequest locationRequest;
@@ -91,6 +98,31 @@ public class MainActivity2 extends AppCompatActivity {
         locationRequest.setInterval(2000);
         locationRequest.setFastestInterval(1000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkPermission();
+        } else {
+            //handle older version of android
+        }
+    }
+
+    private void checkPermission() {
+        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) + ContextCompat.checkSelfPermission(this, READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION) || ActivityCompat.shouldShowRequestPermissionRationale(this, READ_CONTACTS)) {
+                Snackbar.make(this.findViewById(android.R.id.content),
+                        "Please grant permissions to compare current location to contact locations",
+                        Snackbar.LENGTH_INDEFINITE).setAction("ENABLE",
+                        v -> requestPermissions(
+                                new String[]{ACCESS_FINE_LOCATION, READ_CONTACTS},
+                                PERMISSIONS_REQUEST_CODE)).show();
+            } else {
+                requestPermissions(new String[]{ACCESS_FINE_LOCATION, READ_CONTACTS}, PERMISSIONS_REQUEST_CODE);
+            }
+        } else {
+            //permissions already granted, continue functionality
+            checkSettingsAndStartLocationUpdates();
+            fetchContacts();
+        }
     }
 
     /**
@@ -99,12 +131,6 @@ public class MainActivity2 extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        //Check if user has granted app location permission yet, else ask for location permission
-        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            checkSettingsAndStartLocationUpdates();
-        } else {
-            askLocationPermission();
-        }
     }
 
     @Override
@@ -117,6 +143,7 @@ public class MainActivity2 extends AppCompatActivity {
      *
      */
     private void checkSettingsAndStartLocationUpdates() {
+        System.out.println("STARTING LOCATION UPDATES");
         //Specifies type of location services
         LocationSettingsRequest locationSettingsRequest = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest).build();
         //Main entry point for interacting with location settings-enabler APIs
@@ -159,74 +186,22 @@ public class MainActivity2 extends AppCompatActivity {
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
-    private void getLastLocation() {
-        @SuppressLint("MissingPermission") Task<Location> locationTask = fusedLocationProviderClient.getLastLocation();
-
-        locationTask.addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    //we have location
-                    Log.d(TAG, "onSuccess: " + location.toString());
-                    Log.d(TAG, "onSuccess: " + location.getLatitude());
-                    Log.d(TAG, "onSuccess: " + location.getLongitude());
-                    TextView textView = findViewById(R.id.location);
-                    textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude());
-                } else {
-                    Log.d(TAG, "onSuccess: Location was null...");
-                    //location from getLastLocation from the fusedLocationProviderClient is a cached location from other applications
-                }
-            }
-        });
-
-        locationTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "onFailure: " + e.getLocalizedMessage());
-            }
-        });
-    }
-
-    /**
-     * Asks user for location permission.
-     * <p>
-     * Needs further development
-     */
-    private void askLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION)) {
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
-            }else{
-                //No explanation needed, we can request the permission
-                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
-            }
-        }
-    }
-
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
-            case LOCATION_REQUEST_CODE : {
-                //If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    //permission was granted, start location updates
-                    Toast.makeText(getApplicationContext(), "Permission granted", Toast.LENGTH_SHORT).show();
-                    checkSettingsAndStartLocationUpdates();
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    Toast.makeText(getApplicationContext(), "Permission denied, we need permissions to operate", Toast.LENGTH_SHORT).show();
+            case PERMISSIONS_REQUEST_CODE: {
+                if (grantResults.length > 0) {
+                    //check location permission
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(getApplicationContext(), "All permissions granted", Toast.LENGTH_SHORT).show();
+                        checkSettingsAndStartLocationUpdates();
+                        fetchContacts();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Location and Contacts permissions must be granted to compare current location to contact locations", Toast.LENGTH_LONG).show();
+                        checkPermission();
+                    }
                 }
-                return;
             }
-
             // other 'case' lines to check for other
             // permissions this app might request
         }
@@ -282,5 +257,41 @@ public class MainActivity2 extends AppCompatActivity {
         double c = 2 * atan2(sqrt(a), sqrt((1 - a)));
         double d = R * c * meterToMile;
         return d;
+    }
+
+    private void fetchContacts() {
+        System.out.println("FETCHING CONTACTS");
+/*//        Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        Uri uri = ContactsContract.Data.CONTENT_URI;
+        String[] projection = {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.SipAddress.SIP_ADDRESS};
+        String selection = null;
+        String[] selectionArgs = null;
+        String sortOrder = null;
+
+        ContentResolver resolver = getContentResolver();
+        Cursor cursor = resolver.query(uri, null, selection, selectionArgs, sortOrder);
+
+        while (cursor.moveToNext()) {
+//            if(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))=="Isabell"){
+            String addy = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.SipAddress.SIP_ADDRESS));
+//                System.out.println("addy: "+addy);
+//            }
+            String name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+//            String num = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+
+            System.out.println("contact name: " + name + " addy: " + addy);
+        }*/
+
+        Uri postal_uri = ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_URI;
+        Cursor cursor = getContentResolver().query(postal_uri, null, null, null, null);
+        while (cursor.moveToNext()) {
+            String name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.DISPLAY_NAME));
+            String street = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
+            String city = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
+            String country = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY));
+            String fulladdy = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS));
+
+            System.out.println("name: " + name + " full addy: " + fulladdy);
+        }
     }
 }

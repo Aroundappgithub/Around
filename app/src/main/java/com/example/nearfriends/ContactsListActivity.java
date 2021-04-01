@@ -64,20 +64,37 @@ public class ContactsListActivity extends AppCompatActivity {
     }
 
     private void fetchContacts() {
-        Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
-        String[] projection = {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER};
+/*//        Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        Uri uri = ContactsContract.Data.CONTENT_URI;
+        String[] projection = {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.SipAddress.SIP_ADDRESS};
         String selection = null;
         String[] selectionArgs = null;
         String sortOrder = null;
 
         ContentResolver resolver = getContentResolver();
-        Cursor cursor = resolver.query(uri, projection, selection, selectionArgs, sortOrder);
+        Cursor cursor = resolver.query(uri, null, selection, selectionArgs, sortOrder);
 
         while (cursor.moveToNext()) {
+//            if(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))=="Isabell"){
+            String addy = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.SipAddress.SIP_ADDRESS));
+//                System.out.println("addy: "+addy);
+//            }
             String name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-            String num = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+//            String num = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
 
-            System.out.println("contact name: " + name + " number: " + num);
+            System.out.println("contact name: " + name + " addy: " + addy);
+        }*/
+
+        Uri postal_uri = ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_URI;
+        Cursor cursor = getContentResolver().query(postal_uri, null, null, null, null);
+        while (cursor.moveToNext()) {
+            String name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.DISPLAY_NAME));
+            String street = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
+            String city = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
+            String country = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY));
+            String fulladdy = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS));
+
+            System.out.println("name: " + name + " full addy: " + fulladdy);
         }
     }
 }
