@@ -25,13 +25,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Contact list test implementation
-        contactsActivityButton = (Button) findViewById(R.id.contactsActivityButton);
-        contactsActivityButton.setOnClickListener(view -> {
-            Intent contactsIntent = new Intent(this, ContactsListActivity.class);
-            startActivity(contactsIntent);
-        });
-
 
         //Range value entry, submit button action, and Activity 2 trigger
         submitRangeButton = (Button) findViewById(R.id.submitRangeButton);

@@ -91,19 +91,7 @@ public class MainActivity2 extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-        //Create a FusedLocationProviderClient
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        //Create a LocationRequest, set update interval to 10 secs (minimum update of 5 secs), set priority to high
-        locationRequest = LocationRequest.create();
-        locationRequest.setInterval(2000);
-        locationRequest.setFastestInterval(1000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkPermission();
-        } else {
-            //handle older version of android
-        }
     }
 
     private void checkPermission() {
@@ -131,6 +119,19 @@ public class MainActivity2 extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        //Create a FusedLocationProviderClient
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        //Create a LocationRequest, set update interval to 10 secs (minimum update of 5 secs), set priority to high
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(2000);
+        locationRequest.setFastestInterval(1000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkPermission();
+        } else {
+            //handle older version of android
+        }
     }
 
     @Override
