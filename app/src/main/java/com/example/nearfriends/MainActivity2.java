@@ -9,6 +9,8 @@ import android.annotation.SuppressLint;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
@@ -35,7 +37,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.OptionalDouble;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -54,6 +59,8 @@ public class MainActivity2 extends AppCompatActivity {
     FusedLocationProviderClient fusedLocationProviderClient;
     LocationRequest locationRequest;
 
+    private ArrayList<Contact> contactsArrayList = new ArrayList<>();
+
     int updateCounter = 0;
     //need to set myRange upon initialization of app, update when changed
     double myRange = 0;
@@ -64,25 +71,30 @@ public class MainActivity2 extends AppCompatActivity {
             if (locationRequest == null) {
                 return;
             }
-            //Loop through locationResult list of locations
-            for (Location location : locationResult.getLocations()) {
-                //list of contacts within my range
-                myRange = Double.valueOf(getIntent().getStringExtra("range value"));
-                System.out.println("Setting myRange: " + myRange);
-                ArrayList<Contact> withinMyRange = compareMyLocation(location.getLatitude(), location.getLongitude(), myRange);
-                TextView distance = findViewById(R.id.distance);
-                StringBuilder distanceBuilder = new StringBuilder("Contacts within range: \n");
-                for (Contact contact : withinMyRange) {
-                    //syntax is not efficient with large lists, use .append().append()...
-                    distanceBuilder.append(contact.getName() + "-distance: " + contact.getDistance().getAsDouble() + "\n");
-                }
-                System.out.println(distanceBuilder);
-                distance.setText(distanceBuilder);
+            //location comparison is dependent on the contactsArrayList being populated
+            if(getContactsArrayList().size()>0) {
+                //Loop through locationResult list of locations
+                for (Location location : locationResult.getLocations()) {
+                    //list of contacts within my range
+                    myRange = Double.valueOf(getIntent().getStringExtra("range value"));
+                    System.out.println("Setting myRange: " + myRange);
+                    ArrayList<Contact> withinMyRange = compareMyLocation(location.getLatitude(), location.getLongitude(), myRange);
+                    TextView distance = findViewById(R.id.distance);
+                    StringBuilder distanceBuilder = new StringBuilder("Contacts within range: \n");
+                    for (Contact contact : withinMyRange) {
+                        //syntax is not efficient with large lists, use .append().append()...
+                        distanceBuilder.append(contact.getName() + "-distance: " + contact.getDistance().getAsDouble() + "\n");
+                    }
+                    System.out.println(distanceBuilder);
+                    distance.setText(distanceBuilder);
 
-                Log.d(TAG, "OnLocationResult: " + location.toString());
-                TextView textView = findViewById(R.id.location);
-                textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude() + "\nUpdate Counter = " + updateCounter + "\nmy range: " + myRange);
-                updateCounter++;
+                    Log.d(TAG, "OnLocationResult: " + location.toString());
+                    TextView textView = findViewById(R.id.location);
+                    textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude() + "\nUpdate Counter = " + updateCounter + "\nmy range: " + myRange);
+                    updateCounter++;
+                }
+            }else{
+                Toast.makeText(getApplicationContext(),"Waiting for contacts list to populate...", Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -216,9 +228,8 @@ public class MainActivity2 extends AppCompatActivity {
      * @return contacts that are within user's range
      */
     private ArrayList<Contact> compareMyLocation(double myLat, double myLong, double range) {
-        ArrayList<Contact> inRangeContacts = new ArrayList<Contact>();
-        ArrayList<Contact> contactArrayList = getContactList();
-        for (Contact contact : contactArrayList) {
+        ArrayList<Contact> inRangeContacts = new ArrayList<>();
+        for (Contact contact : getContactsArrayList()) {
             double distance = haversineFormula(myLat, myLong, contact.getLatitude(), contact.getLongitude());
             if (distance <= range) {
                 contact.setDistance(OptionalDouble.of(distance));
@@ -228,24 +239,23 @@ public class MainActivity2 extends AppCompatActivity {
         return inRangeContacts;
     }
 
-    /**
+/*    *//**
      * This method shall stream Contact objects into an ArrayList
      * that will be used by the caller to store in a hashmap...
      * Do i even need a hashmap? Can I reference the first index of the ArrayList?
      *
      * @return ArrayList of contact information
-     */
+     *//*
     private ArrayList<Contact> getContactList() {
         //Create fake map with locations
         ArrayList<Contact> contactArrayList = new ArrayList<Contact>();
-        contactArrayList.add(new Contact("Isabella Murmann", "Richmond", "Virginia", 37.562457, -77.473087, null));
-        contactArrayList.add(new Contact("Bobby Shmurda", "Reston", "Virginia", 38.9586, -77.3570, null));
+        contactArrayList.add(new Contact("Isabella Murmann", 37.562457, -77.473087, null));
+        contactArrayList.add(new Contact("Bobby Shmurda", 38.9586, -77.3570, null));
         //add contact without specified address, use city center as coordinates
         return contactArrayList;
-    }
+    }*/
 
-    private double haversineFormula(double myLat, double myLong, double theirLat,
-                                    double theirLong) {
+    private double haversineFormula(double myLat, double myLong, double theirLat, double theirLong) {
         double toRadian = PI / 180;
         double theirLatitudeInRadians = theirLat * toRadian;
         double theirLongitudeInRadians = theirLong * toRadian;
@@ -254,7 +264,7 @@ public class MainActivity2 extends AppCompatActivity {
 
         double R = 6371000; //in meters
         double meterToMile = 0.000621371;
-        double a = pow(sin((theirLatitudeInRadians - myLatitudeInRadians) / 2), 2) + cos(myLatitudeInRadians) * cos(theirLatitudeInRadians) * pow(sin((theirLongitudeInRadians - theirLongitudeInRadians) / 2), 2);
+        double a = pow(sin((theirLatitudeInRadians - myLatitudeInRadians) / 2), 2) + cos(myLatitudeInRadians) * cos(theirLatitudeInRadians) * pow(sin((theirLongitudeInRadians - myLongitudeInRadians) / 2), 2);
         double c = 2 * atan2(sqrt(a), sqrt((1 - a)));
         double d = R * c * meterToMile;
         return d;
@@ -262,27 +272,46 @@ public class MainActivity2 extends AppCompatActivity {
 
     private void fetchContacts() {
         System.out.println("FETCHING CONTACTS");
-
+        Geocoder coder = new Geocoder(this);
         Uri uri = ContactsContract.Contacts.CONTENT_URI;
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         if (cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
-                String address="";
+                String address = "";
                 String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
                 String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
                 Cursor addCursor = getContentResolver().query(ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_URI, null, ContactsContract.CommonDataKinds.StructuredPostal.CONTACT_ID + " = ?", new String[]{id}, null);
-                while(addCursor.moveToNext()){
+                while (addCursor.moveToNext()) {
                     address = addCursor.getString(addCursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS));
                 }
                 addCursor.close();
-                if (address.isEmpty()){
-                    //user adds contact address here
-                    System.out.println("name: "+name+" address: empty");
-                }else{
-                    System.out.println("name: "+name+" address: "+address);
+                if (address.isEmpty()) {
+                    //user provides contact address here
+                } else {
+
+                    try {
+                        List<Address> wholeAddress = coder.getFromLocationName(address, 1);
+                        Address location = wholeAddress.get(0);
+                        double lat = location.getLatitude();
+                        double longitude = location.getLongitude();
+                        System.out.println("name: " + name + " address: " + location.getAddressLine(0) + " lat: " + lat + " long: " + longitude);
+                        Contact contactInfo = new Contact(name, lat, longitude, null);
+                        addToContactsArrayList(contactInfo);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("name: " + name + " address: " + address);
                 }
             }
         }
+    }
+
+    private ArrayList<Contact> getContactsArrayList() {
+        return contactsArrayList;
+    }
+
+    private void addToContactsArrayList(Contact contact) {
+        contactsArrayList.add(contact);
     }
 }

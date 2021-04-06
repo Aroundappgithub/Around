@@ -14,19 +14,23 @@ import java.util.OptionalDouble;
  */
 public class Contact {
     private String name;
-    private String city;
-    private String state;
+/*    private String city;
+    private String state;*/
     private double latitude;
     private double longitude;
     private OptionalDouble distance;
 
-    public Contact(String name, String city, String state, double latitude, double longitude, OptionalDouble distance) {
+    public Contact(String name, /*String city, String state,*/ double latitude, double longitude, OptionalDouble distance) {
         this.name = name;
-        this.city = city;
-        this.state = state;
+/*        this.city = city;
+        this.state = state;*/
         this.latitude = latitude;
         this.longitude = longitude;
         this.distance = distance;
+    }
+
+    public Contact() {
+
     }
 
     public OptionalDouble getDistance() {
@@ -51,33 +55,33 @@ public class Contact {
         this.name = name;
     }
 
-    /**
+/*    *//**
      * @return city name
-     */
+     *//*
     public String getCity() {
         return city;
     }
 
-    /**
+    *//**
      * @param city
-     */
+     *//*
     public void setCity(String city) {
         this.city = city;
     }
 
-    /**
+    *//**
      * @return state name
-     */
+     *//*
     public String getState() {
         return state;
     }
 
-    /**
+    *//**
      * @param state
-     */
+     *//*
     public void setState(String state) {
         this.state = state;
-    }
+    }*/
 
     /**
      * @return latitude location coordinate
