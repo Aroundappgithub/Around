@@ -24,16 +24,17 @@ import java.util.OptionalDouble;
  */
 public class Tab1 extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
+    //To pass in arguments into this fragment: create a new instance, create an argument Bundle, add arguments to the bundle
+
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
     RecyclerView recyclerView;
+    //List of all phone contacts as Contacts object
     private ArrayList<Contact> contactsArrayList = new ArrayList<>();
 
     public Tab1() {
@@ -48,7 +49,6 @@ public class Tab1 extends Fragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment Tab1.
      */
-    // TODO: Rename and change types and number of parameters
     public static Tab1 newInstance(String param1, String param2) {
         Tab1 fragment = new Tab1();
         Bundle args = new Bundle();
@@ -75,13 +75,14 @@ public class Tab1 extends Fragment {
     }
 
     @Override
-    public void onStart(){
+    public void onStart() {
         super.onStart();
 
+        //Create a recycler view (in fragment_tab1.xml) that recursively replicates a UI object
         recyclerView = (RecyclerView) getView().findViewById(R.id.recyclerView_id);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-
+        //Get list of all phone contacts
         fetchContacts();
     }
 
@@ -89,7 +90,7 @@ public class Tab1 extends Fragment {
     }
 
     /**
-     * Get list of contacts from phone
+     * Get list of contacts from phone and initialize recycler view adapter
      */
     private void fetchContacts() {
         System.out.println("FETCHING CONTACTS");
@@ -110,7 +111,7 @@ public class Tab1 extends Fragment {
                 Contact singleContact = new Contact(name, OptionalDouble.empty(), OptionalDouble.empty(), OptionalDouble.empty(), address, Optional.<String>empty());
                 contactsArrayList.add(singleContact);
 
-                //Initialize adapter
+                //Initialize adapter, pass in this context and the Contacts arraylist
                 RecyclerAdapter recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
                 recyclerView.setAdapter(recyclerAdapter);
                 recyclerAdapter.notifyDataSetChanged();

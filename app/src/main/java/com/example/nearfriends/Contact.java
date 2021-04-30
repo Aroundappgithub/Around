@@ -4,10 +4,8 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 
 /**
- * Represents the information of a contact.
- * Should be able to connect with Contacts api and get contact data
- * Should be able to write back and set contact data
- * Should be able to convert city/state to lat/long coordinate of city center
+ * Represents the information of a single contact.
+ * Should be able to read/write (get/set)
  *
  * @author Millad Nooristani
  * @version 1.0
@@ -32,28 +30,28 @@ public class Contact {
     /**
      * @return group this contact belongs to
      */
-    public Optional<String> getGroup(){
+    public Optional<String> getGroup() {
         return group;
     }
 
     /**
      * @param group (friend, client, family, etc)
      */
-    public void setGroup(Optional<String> group){
+    public void setGroup(Optional<String> group) {
         this.group = group;
     }
 
     /**
      * @return contact address
      */
-    public String getAddress(){
+    public String getAddress() {
         return address;
     }
 
     /**
      * @param address
      */
-    public void setAddress(String address){
+    public void setAddress(String address) {
         this.address = address;
     }
 

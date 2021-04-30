@@ -59,12 +59,6 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
         }
 
 
-
-
-
-
-
-
        /* //Range value entry, submit button action, and Activity 2 trigger
         submitRangeButton = (Button) findViewById(R.id.submitRangeButton);
         submitRangeButton.setEnabled(false);
@@ -145,7 +139,10 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
         }
     }
 
-    public void startFragments(){
+    /**
+     * Start the tabbed and swipeable fragment view
+     */
+    public void startFragments() {
         ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
         PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(pagerAdapter);

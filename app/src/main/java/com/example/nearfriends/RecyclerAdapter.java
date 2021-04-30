@@ -17,6 +17,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdap
     Context context;
     ArrayList<Contact> contactArrayList;
 
+    /**
+     * @param context          the context making this call
+     * @param contactArrayList the Contact arraylist
+     */
     public RecyclerAdapter(Context context, ArrayList<Contact> contactArrayList) {
         this.context = context;
         this.contactArrayList = contactArrayList;
@@ -31,6 +35,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdap
 
     @Override
     public void onBindViewHolder(MyAdapterViewHolder holder, int position) {
+        //Set each UI component to relative Contact element
         Contact contact = contactArrayList.get(position);
         holder.contactName.setText(contact.getName());
         holder.contactAddress.setText(contact.getAddress());
@@ -50,10 +55,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdap
 
         public MyAdapterViewHolder(View itemView) {
             super(itemView);
-
+            //Link each variable with respective UI component
             contactName = (TextView) itemView.findViewById(R.id.contactName);
             contactAddress = (TextView) itemView.findViewById(R.id.contactAddress);
             contactGroup = (TextView) itemView.findViewById(R.id.contactGroup);
+            //add starred listener functionality here?
             favoriteCheckbox = itemView.findViewById(R.id.favorite);
         }
     }

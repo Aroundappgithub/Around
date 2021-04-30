@@ -72,7 +72,7 @@ public class MainActivity2 extends AppCompatActivity {
                 return;
             }
             //location comparison is dependent on the contactsArrayList being populated
-            if(getContactsArrayList().size()>0) {
+            if (getContactsArrayList().size() > 0) {
                 //Loop through locationResult list of locations
                 for (Location location : locationResult.getLocations()) {
                     //list of contacts within my range
@@ -93,8 +93,8 @@ public class MainActivity2 extends AppCompatActivity {
                     textView.setText("My Location\n" + "Latitude: " + location.getLatitude() + "\nLongitude: " + location.getLongitude() + "\nUpdate Counter = " + updateCounter + "\nmy range: " + myRange);
                     updateCounter++;
                 }
-            }else{
-                Toast.makeText(getApplicationContext(),"Waiting for contacts list to populate...", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Waiting for contacts list to populate...", Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -239,7 +239,9 @@ public class MainActivity2 extends AppCompatActivity {
         return inRangeContacts;
     }
 
-/*    *//**
+    /*    */
+
+    /**
      * This method shall stream Contact objects into an ArrayList
      * that will be used by the caller to store in a hashmap...
      * Do i even need a hashmap? Can I reference the first index of the ArrayList?
@@ -254,7 +256,6 @@ public class MainActivity2 extends AppCompatActivity {
         //add contact without specified address, use city center as coordinates
         return contactArrayList;
     }*/
-
     private double haversineFormula(double myLat, double myLong, double theirLat, double theirLong) {
         double toRadian = PI / 180;
         double theirLatitudeInRadians = theirLat * toRadian;

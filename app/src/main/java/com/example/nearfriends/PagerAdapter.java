@@ -6,14 +6,14 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 public class PagerAdapter extends FragmentPagerAdapter {
-    public PagerAdapter(FragmentManager fragmentManager){
+    public PagerAdapter(FragmentManager fragmentManager) {
         super(fragmentManager);
     }
 
     @NonNull
     @Override
     public Fragment getItem(int position) {
-        switch (position){
+        switch (position) {
             case 0:
                 Tab1 tab1 = new Tab1();
                 return tab1;
@@ -32,8 +32,8 @@ public class PagerAdapter extends FragmentPagerAdapter {
     }
 
     @Override
-    public CharSequence getPageTitle(int position){
-        switch (position){
+    public CharSequence getPageTitle(int position) {
+        switch (position) {
             case 0:
                 return "Contacts";
             case 1:
