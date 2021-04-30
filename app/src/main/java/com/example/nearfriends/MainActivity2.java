@@ -230,7 +230,7 @@ public class MainActivity2 extends AppCompatActivity {
     private ArrayList<Contact> compareMyLocation(double myLat, double myLong, double range) {
         ArrayList<Contact> inRangeContacts = new ArrayList<>();
         for (Contact contact : getContactsArrayList()) {
-            double distance = haversineFormula(myLat, myLong, contact.getLatitude(), contact.getLongitude());
+            double distance = haversineFormula(myLat, myLong, contact.getLatitude().getAsDouble(), contact.getLongitude().getAsDouble());
             if (distance <= range) {
                 contact.setDistance(OptionalDouble.of(distance));
                 inRangeContacts.add(contact);
@@ -296,7 +296,7 @@ public class MainActivity2 extends AppCompatActivity {
                         double lat = location.getLatitude();
                         double longitude = location.getLongitude();
                         System.out.println("name: " + name + " address: " + location.getAddressLine(0) + " lat: " + lat + " long: " + longitude);
-                        Contact contactInfo = new Contact(name, lat, longitude, null);
+                        Contact contactInfo = new Contact(name, OptionalDouble.of(lat), OptionalDouble.of(longitude), null, null, null);
                         addToContactsArrayList(contactInfo);
                     } catch (IOException e) {
                         e.printStackTrace();

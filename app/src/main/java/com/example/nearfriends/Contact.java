@@ -14,29 +14,59 @@ import java.util.OptionalDouble;
  */
 public class Contact {
     private String name;
-/*    private String city;
-    private String state;*/
-    private double latitude;
-    private double longitude;
+    private OptionalDouble latitude;
+    private OptionalDouble longitude;
     private OptionalDouble distance;
+    private String address;
+    private Optional<String> group;
 
-    public Contact(String name, /*String city, String state,*/ double latitude, double longitude, OptionalDouble distance) {
+    public Contact(String name, OptionalDouble latitude, OptionalDouble longitude, OptionalDouble distance, String address, Optional<String> group) {
         this.name = name;
-/*        this.city = city;
-        this.state = state;*/
         this.latitude = latitude;
         this.longitude = longitude;
         this.distance = distance;
+        this.address = address;
+        this.group = group;
     }
 
-    public Contact() {
-
+    /**
+     * @return group this contact belongs to
+     */
+    public Optional<String> getGroup(){
+        return group;
     }
 
+    /**
+     * @param group (friend, client, family, etc)
+     */
+    public void setGroup(Optional<String> group){
+        this.group = group;
+    }
+
+    /**
+     * @return contact address
+     */
+    public String getAddress(){
+        return address;
+    }
+
+    /**
+     * @param address
+     */
+    public void setAddress(String address){
+        this.address = address;
+    }
+
+    /**
+     * @return calculated distance from user
+     */
     public OptionalDouble getDistance() {
         return distance;
     }
 
+    /**
+     * @param distance in miles
+     */
     public void setDistance(OptionalDouble distance) {
         this.distance = distance;
     }
@@ -55,59 +85,31 @@ public class Contact {
         this.name = name;
     }
 
-/*    *//**
-     * @return city name
-     *//*
-    public String getCity() {
-        return city;
-    }
-
-    *//**
-     * @param city
-     *//*
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    *//**
-     * @return state name
-     *//*
-    public String getState() {
-        return state;
-    }
-
-    *//**
-     * @param state
-     *//*
-    public void setState(String state) {
-        this.state = state;
-    }*/
-
     /**
      * @return latitude location coordinate
      */
-    public double getLatitude() {
+    public OptionalDouble getLatitude() {
         return latitude;
     }
 
     /**
      * @param latitude location coordinate
      */
-    public void setLatitude(double latitude) {
+    public void setLatitude(OptionalDouble latitude) {
         this.latitude = latitude;
     }
 
     /**
      * @return longitude location coordinate
      */
-    public double getLongitude() {
+    public OptionalDouble getLongitude() {
         return longitude;
     }
 
     /**
      * @param longitude location coordinate
      */
-    public void setLongitude(double longitude) {
+    public void setLongitude(OptionalDouble longitude) {
         this.longitude = longitude;
     }
 }
