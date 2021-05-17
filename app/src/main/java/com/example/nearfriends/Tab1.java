@@ -36,6 +36,8 @@ public class Tab1 extends Fragment {
     RecyclerView recyclerView;
     //List of all phone contacts as Contacts object
     private ArrayList<Contact> contactsArrayList = new ArrayList<>();
+    //list of phone contacts that don't have addresses
+    private ArrayList<Contact> emptyAddressContacts = new ArrayList<>();
 
     public Tab1() {
         // Required empty public constructor
@@ -83,7 +85,14 @@ public class Tab1 extends Fragment {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         //Get list of all phone contacts
-        fetchContacts();
+        if (contactsArrayList.isEmpty()) {
+            fetchContacts();
+        } else {
+            //Initialize adapter, pass in this context and the Contacts arraylist
+            RecyclerAdapter recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
+            recyclerView.setAdapter(recyclerAdapter);
+            recyclerAdapter.notifyDataSetChanged();
+        }
     }
 
     public interface OnFragmentInteractionListener {
@@ -107,8 +116,13 @@ public class Tab1 extends Fragment {
                     address = addCursor.getString(addCursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS));
                 }
                 addCursor.close();
+                //if address for a contact is empty, add it to list, ask user if they want to add addresses
+                if (address.isEmpty()) {
+                    Contact missingAddressContact = new Contact(name, OptionalDouble.empty(), OptionalDouble.empty(), OptionalDouble.empty(), Optional.empty(), Optional.<String>empty());
+                    emptyAddressContacts.add(missingAddressContact);
+                }
 
-                Contact singleContact = new Contact(name, OptionalDouble.empty(), OptionalDouble.empty(), OptionalDouble.empty(), address, Optional.<String>empty());
+                Contact singleContact = new Contact(name, OptionalDouble.empty(), OptionalDouble.empty(), OptionalDouble.empty(), Optional.ofNullable(address), Optional.<String>empty());
                 contactsArrayList.add(singleContact);
 
                 //Initialize adapter, pass in this context and the Contacts arraylist

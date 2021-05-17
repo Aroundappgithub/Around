@@ -38,7 +38,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdap
         //Set each UI component to relative Contact element
         Contact contact = contactArrayList.get(position);
         holder.contactName.setText(contact.getName());
-        holder.contactAddress.setText(contact.getAddress());
+        holder.contactAddress.setText(contact.getAddress().orElse(""));
         holder.contactGroup.setText(contact.getGroup().orElse(""));
     }
 

@@ -1,5 +1,7 @@
 package com.example.nearfriends;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
@@ -15,10 +17,10 @@ public class Contact {
     private OptionalDouble latitude;
     private OptionalDouble longitude;
     private OptionalDouble distance;
-    private String address;
+    private Optional<String> address;
     private Optional<String> group;
 
-    public Contact(String name, OptionalDouble latitude, OptionalDouble longitude, OptionalDouble distance, String address, Optional<String> group) {
+    public Contact(String name, OptionalDouble latitude, OptionalDouble longitude, OptionalDouble distance, Optional<String> address, Optional<String> group) {
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -44,14 +46,14 @@ public class Contact {
     /**
      * @return contact address
      */
-    public String getAddress() {
+    public Optional<String> getAddress() {
         return address;
     }
 
     /**
      * @param address
      */
-    public void setAddress(String address) {
+    public void setAddress(Optional<String> address) {
         this.address = address;
     }
 

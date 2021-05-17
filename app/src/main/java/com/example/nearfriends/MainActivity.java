@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
         if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) + ContextCompat.checkSelfPermission(this, READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION) || ActivityCompat.shouldShowRequestPermissionRationale(this, READ_CONTACTS)) {
                 Snackbar.make(this.findViewById(android.R.id.content),
-                        "Please grant permissions to compare current location to contact locations",
+                        "This app requires contacts and location permission to function",
                         Snackbar.LENGTH_INDEFINITE).setAction("ENABLE",
                         v -> requestPermissions(
                                 new String[]{ACCESS_FINE_LOCATION, READ_CONTACTS},
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
                         Toast.makeText(getApplicationContext(), "All permissions granted", Toast.LENGTH_SHORT).show();
                         startFragments();
                     } else {
-                        Toast.makeText(getApplicationContext(), "Location and Contacts permissions must be granted to compare current location to contact locations", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Location and Contacts permissions must be granted for app to function", Toast.LENGTH_LONG).show();
                         checkPermission();
                     }
                 }
