@@ -57,42 +57,6 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
         } else {
             //handle older version of android
         }
-
-
-       /* //Range value entry, submit button action, and Activity 2 trigger
-        submitRangeButton = (Button) findViewById(R.id.submitRangeButton);
-        submitRangeButton.setEnabled(false);
-        rangeValue = (EditText) findViewById(R.id.rangeValue);
-        rangeValue.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                if (start > 0 || after > 0) {
-                    submitRangeButton.setEnabled(true);
-                    submitRangeButton.setOnClickListener(view -> openActivity2(rangeValue));
-                } else {
-                    submitRangeButton.setEnabled(false);
-                }
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-    }
-
-    public void openActivity2(EditText rangeValue) {
-        Intent intent = new Intent(this, MainActivity2.class);
-        intent.putExtra("range value", rangeValue.getText().toString());
-        startActivity(intent);
-    }
-
-    public double getRangeValue() {
-        return Double.valueOf(rangeValue.getText().toString());
-    }*/
     }
 
 
@@ -112,9 +76,6 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
                 requestPermissions(new String[]{ACCESS_FINE_LOCATION, READ_CONTACTS}, PERMISSIONS_REQUEST_CODE);
             }
         } else {
-            //permissions already granted, continue functionality
-            /*checkSettingsAndStartLocationUpdates();
-            fetchContacts();*/
             startFragments();
         }
     }
