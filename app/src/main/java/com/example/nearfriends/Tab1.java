@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +39,8 @@ public class Tab1 extends Fragment {
     private ArrayList<Contact> contactsArrayList = new ArrayList<>();
     //list of phone contacts that don't have addresses
     private ArrayList<Contact> emptyAddressContacts = new ArrayList<>();
+
+    private Handler mainHandler = new Handler();
 
     public Tab1() {
         // Required empty public constructor
@@ -86,13 +89,22 @@ public class Tab1 extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         //Get list of all phone contacts
         if (contactsArrayList.isEmpty()) {
-            fetchContacts();
+            new Thread(() -> {
+                fetchContacts();
+                mainHandler.post(() -> {
+                    //Initialize adapter, pass in this context and the Contacts arraylist
+                    RecyclerAdapter recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
+                    recyclerView.setAdapter(recyclerAdapter);
+                    recyclerAdapter.notifyDataSetChanged();
+                });
+            }).start();
         } else {
             //Initialize adapter, pass in this context and the Contacts arraylist
             RecyclerAdapter recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
             recyclerView.setAdapter(recyclerAdapter);
             recyclerAdapter.notifyDataSetChanged();
         }
+
     }
 
     public interface OnFragmentInteractionListener {
@@ -124,12 +136,8 @@ public class Tab1 extends Fragment {
 
                 Contact singleContact = new Contact(name, OptionalDouble.empty(), OptionalDouble.empty(), OptionalDouble.empty(), Optional.ofNullable(address), Optional.<String>empty());
                 contactsArrayList.add(singleContact);
-
-                //Initialize adapter, pass in this context and the Contacts arraylist
-                RecyclerAdapter recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
-                recyclerView.setAdapter(recyclerAdapter);
-                recyclerAdapter.notifyDataSetChanged();
             }
         }
+        cursor.close();
     }
 }

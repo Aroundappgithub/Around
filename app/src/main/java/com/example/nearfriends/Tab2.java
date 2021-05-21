@@ -1,24 +1,14 @@
 package com.example.nearfriends;
 
 import android.annotation.SuppressLint;
-import android.app.Notification;
 import android.content.Context;
 import android.content.IntentSender;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
@@ -27,6 +17,10 @@ import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -37,18 +31,10 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.appindexing.Action;
-
-import org.w3c.dom.Text;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -96,16 +82,17 @@ public class Tab2 extends Fragment {
     double myLastLat, myLastLong;
     //user must change location by this many miles for distance comparison in locationCallback
     double locationChangeThreshold = 0.1;
-    String rangeTextComparison;
 
     LocationResult globalLocationResult;
+
+    private Handler mainHandler = new Handler();
 
     LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             globalLocationResult = locationResult;
             //check if user location changed more than the locationChangeThershold, otherwise nearbyContactsList does not need to be updated
-            if ((haversineFormula(myLastLat, myLastLong, locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude()) >= locationChangeThreshold) || (!rangeText.getText().toString().equals(rangeTextComparison))) {
+            if ((haversineFormula(myLastLat, myLastLong, locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude()) >= locationChangeThreshold)) {
                 System.out.println("DISTANCE CHANGED COMPARING USER LOCATION TO CONTACT LOCATIONS");
                 if (locationResult == null) {
                     return;
@@ -122,21 +109,21 @@ public class Tab2 extends Fragment {
                     e.printStackTrace();
                 }
                 currentCity.setText(currentCityString);
-
                 //Compare contact locations to my location
                 if (!userContactsList.isEmpty()) {
                     double range = rangeBar.getProgress();
                     ArrayList<Contact> nearbyContactsList = compareMyLocation(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), range);
+                    for (Contact contact : nearbyContactsList) {
+                        System.out.println("NEARBY CONTACTS: " + contact.getName());
+                    }
                     RecyclerAdapter recyclerAdapter = new RecyclerAdapter(thisContext, nearbyContactsList);
                     recyclerView.setAdapter(recyclerAdapter);
                     recyclerAdapter.notifyDataSetChanged();
-
                 } else {
                     Toast.makeText(getContext(), "Waiting for contacts list to populate...", Toast.LENGTH_LONG).show();
                 }
                 myLastLat = locationResult.getLastLocation().getLatitude();
                 myLastLong = locationResult.getLastLocation().getLongitude();
-                rangeTextComparison = rangeText.getText().toString();
             }
         }
     };
@@ -242,23 +229,29 @@ public class Tab2 extends Fragment {
         locationSettingsResponseTask.addOnSuccessListener(locationSettingsResponse -> {
             requestLocationUpdates();
             if (userContactsList.isEmpty()) {
-                fetchContacts();
+                new Thread(() -> {
+                    fetchContacts();
+                    mainHandler.post(() -> {
+                        if (globalLocationResult != null) {
+                            ArrayList<Contact> onThreadCompleteNearbyContactsList = compareMyLocation(globalLocationResult.getLastLocation().getLatitude(), globalLocationResult.getLastLocation().getLongitude(), rangeBar.getProgress());
+                            RecyclerAdapter onThreadCompleteRecyclerAdapter = new RecyclerAdapter(thisContext, onThreadCompleteNearbyContactsList);
+                            recyclerView.setAdapter(onThreadCompleteRecyclerAdapter);
+                        }
+                    });
+                }).start();
             }
         });
 
         //in case the location settings request is not satisfied, should not reach this point
-        locationSettingsResponseTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                //ask user to turn on location permissions
-                if (e instanceof ResolvableApiException) {
-                    ResolvableApiException apiException = (ResolvableApiException) e;
-                    //Show dialog by calling startResolutionForResult()
-                    try {
-                        apiException.startResolutionForResult(getActivity(), 1001);
-                    } catch (IntentSender.SendIntentException sendIntentException) {
-                        sendIntentException.printStackTrace();
-                    }
+        locationSettingsResponseTask.addOnFailureListener(e -> {
+            //ask user to turn on location permissions
+            if (e instanceof ResolvableApiException) {
+                ResolvableApiException apiException = (ResolvableApiException) e;
+                //Show dialog by calling startResolutionForResult()
+                try {
+                    apiException.startResolutionForResult(getActivity(), 1001);
+                } catch (IntentSender.SendIntentException sendIntentException) {
+                    sendIntentException.printStackTrace();
                 }
             }
         });
@@ -353,31 +346,5 @@ public class Tab2 extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-    }
-
-    public ArrayList<Contact> sortByDistance(ArrayList<Contact> list) {
-        System.out.println("--------------DEBUG-------------");
-        boolean sorted = false;
-        Contact currentTemp, nextTemp;
-        while (!sorted) {
-            sorted = true;
-            for (int i = 0; i < list.size() - 1; i++) {
-                System.out.println("what is ayeeeeee: " + i);
-                System.out.println("name i: " + list.get(i).getName());
-                System.out.println("name i+1 " + list.get(i + 1).getName());
-                if (list.get(i).getDistance().getAsDouble() > list.get(i + 1).getDistance().getAsDouble()) {
-                    System.out.println("we are swapping");
-                    currentTemp = list.get(i);
-                    nextTemp = list.get(i + 1);
-                    System.out.println("index of i: " + list.indexOf(currentTemp));
-                    list.set(list.indexOf(currentTemp), list.get(i + 1));
-                    list.set(list.indexOf(nextTemp), currentTemp);
-                    sorted = false;
-                    System.out.println("name i: " + list.get(i).getName());
-                    System.out.println("name i+1 " + list.get(i + 1).getName());
-                }
-            }
-        }
-        return list;
     }
 }

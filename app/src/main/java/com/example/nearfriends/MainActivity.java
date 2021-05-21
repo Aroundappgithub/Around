@@ -38,10 +38,6 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
     private static final int PERMISSIONS_REQUEST_CODE = 10001;
     private ArrayList<Contact> contactsArrayList = new ArrayList<>();
 
-    private EditText rangeValue;
-    private Button submitRangeButton;
-    private Button contactsActivityButton;
-
     /**
      * Initialize home screen activity
      *
