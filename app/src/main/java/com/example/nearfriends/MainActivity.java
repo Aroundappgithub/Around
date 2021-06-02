@@ -33,7 +33,7 @@ import java.util.List;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.READ_CONTACTS;
 
-public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener, Tab3.OnFragementInteractionListener, Tab4.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener, Tab4.OnFragmentInteractionListener {
 
     private static final int PERMISSIONS_REQUEST_CODE = 10001;
     private ArrayList<Contact> contactsArrayList = new ArrayList<>();

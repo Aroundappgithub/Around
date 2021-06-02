@@ -96,4 +96,7 @@ public class Tab3 extends Fragment {
 
         return view;
     }
+
+    public interface OnFragmentInteractionListener {
+    }
 }
