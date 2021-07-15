@@ -5,17 +5,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdapterViewHolder> {
+public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdapterViewHolder> implements Filterable {
 
     Context context;
     ArrayList<Contact> contactArrayList;
+    ArrayList<Contact> preFilterList;
 
     /**
      * @param context          the context making this call
@@ -24,6 +28,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdap
     public RecyclerAdapter(Context context, ArrayList<Contact> contactArrayList) {
         this.context = context;
         this.contactArrayList = contactArrayList;
+        preFilterList = new ArrayList<>(contactArrayList);
     }
 
     @NonNull
@@ -47,6 +52,42 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdap
     public int getItemCount() {
         return contactArrayList.size();
     }
+
+    @Override
+    public Filter getFilter() {
+        return listFilter;
+    }
+
+    private Filter listFilter = new Filter() {
+        @Override
+        //Works on a background thread
+        protected FilterResults performFiltering(CharSequence constraint) {
+            ArrayList<Contact> filteredList = new ArrayList<>();
+
+            if(constraint == null || constraint.length()==0){
+                filteredList.addAll(preFilterList);
+            }else{
+                String searchPattern = constraint.toString().toLowerCase().trim();
+
+                //Compare each contact to the prefilterlist
+                for(Contact contact: preFilterList){
+                    if(contact.getName().toLowerCase().contains(searchPattern)){
+                        filteredList.add(contact);
+                    }
+                }
+            }
+            FilterResults results = new FilterResults();
+            results.values = filteredList;
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            contactArrayList.clear();
+            contactArrayList.addAll((ArrayList)results.values);
+            notifyDataSetChanged();
+        }
+    };
 
     public class MyAdapterViewHolder extends RecyclerView.ViewHolder {
 

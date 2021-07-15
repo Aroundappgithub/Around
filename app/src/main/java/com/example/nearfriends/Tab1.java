@@ -3,16 +3,16 @@ package com.example.nearfriends;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.os.Handler;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -35,6 +35,7 @@ public class Tab1 extends Fragment {
     private String mParam2;
 
     RecyclerView recyclerView;
+    RecyclerAdapter recyclerAdapter;
     //List of all phone contacts as Contacts object
     private ArrayList<Contact> contactsArrayList = new ArrayList<>();
     //list of phone contacts that don't have addresses
@@ -93,18 +94,38 @@ public class Tab1 extends Fragment {
                 fetchContacts();
                 mainHandler.post(() -> {
                     //Initialize adapter, pass in this context and the Contacts arraylist
-                    RecyclerAdapter recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
+                    recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
                     recyclerView.setAdapter(recyclerAdapter);
                     recyclerAdapter.notifyDataSetChanged();
                 });
             }).start();
         } else {
             //Initialize adapter, pass in this context and the Contacts arraylist
-            RecyclerAdapter recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
+            recyclerAdapter = new RecyclerAdapter(getContext(), contactsArrayList);
             recyclerView.setAdapter(recyclerAdapter);
             recyclerAdapter.notifyDataSetChanged();
         }
 
+        SearchView searchView = (SearchView) getView().findViewById(R.id.action_search);
+        searchView.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                searchView.setIconified(false);
+            }
+        });
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                recyclerAdapter.getFilter().filter(newText);
+                return false;
+            }
+        });
     }
 
     public interface OnFragmentInteractionListener {
