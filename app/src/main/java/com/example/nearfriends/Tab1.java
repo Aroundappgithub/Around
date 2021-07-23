@@ -85,7 +85,7 @@ public class Tab1 extends Fragment {
         super.onStart();
 
         //Create a recycler view (in fragment_tab1.xml) that recursively replicates a UI object
-        recyclerView = (RecyclerView) getView().findViewById(R.id.recyclerView_id);
+        recyclerView = getView().findViewById(R.id.recyclerView_id);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         //Get list of all phone contacts
@@ -106,7 +106,7 @@ public class Tab1 extends Fragment {
             recyclerAdapter.notifyDataSetChanged();
         }
 
-        SearchView searchView = (SearchView) getView().findViewById(R.id.action_search);
+        SearchView searchView = getView().findViewById(R.id.action_search);
         searchView.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {

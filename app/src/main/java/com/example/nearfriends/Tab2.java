@@ -91,9 +91,11 @@ public class Tab2 extends Fragment {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             globalLocationResult = locationResult;
-            //check if user location changed more than the locationChangeThershold, otherwise nearbyContactsList does not need to be updated
+            //Update current location in a bundle or [Tab 3] to retrieve
+            updateMainActivityLocationResult(locationResult);
+            //check if user location changed more than the locationChangeThreshold, otherwise nearbyContactsList does not need to be updated
             if ((haversineFormula(myLastLat, myLastLong, locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude()) >= locationChangeThreshold)) {
-                System.out.println("DISTANCE CHANGED COMPARING USER LOCATION TO CONTACT LOCATIONS");
+//                System.out.println("DISTANCE CHANGED COMPARING USER LOCATION TO CONTACT LOCATIONS");
                 if (locationResult == null) {
                     return;
                 }
@@ -114,7 +116,7 @@ public class Tab2 extends Fragment {
                     double range = rangeBar.getProgress();
                     ArrayList<Contact> nearbyContactsList = compareMyLocation(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), range);
                     for (Contact contact : nearbyContactsList) {
-                        System.out.println("NEARBY CONTACTS: " + contact.getName());
+//                        System.out.println("NEARBY CONTACTS: " + contact.getName());
                     }
                     RecyclerAdapter recyclerAdapter = new RecyclerAdapter(thisContext, nearbyContactsList);
                     recyclerView.setAdapter(recyclerAdapter);
@@ -170,7 +172,7 @@ public class Tab2 extends Fragment {
     public void onStart() {
         super.onStart();
 
-        recyclerView = (RecyclerView) getView().findViewById(R.id.recyclerViewTab2_id);
+        recyclerView = getView().findViewById(R.id.recyclerViewTab2_id);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
@@ -315,6 +317,15 @@ public class Tab2 extends Fragment {
         return inRangeContacts;
     }
 
+    /**
+     * This method literally does this calculation: android.location.Location.distanceBetween()
+     *
+     * @param myLat
+     * @param myLong
+     * @param theirLat
+     * @param theirLong
+     * @return
+     */
     private double haversineFormula(double myLat, double myLong, double theirLat, double theirLong) {
         double toRadian = PI / 180;
         double theirLatInRadians = theirLat * toRadian;
@@ -333,6 +344,12 @@ public class Tab2 extends Fragment {
     @SuppressLint("MissingPermission")
     private void requestLocationUpdates() {
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+    }
+
+    public void updateMainActivityLocationResult(LocationResult locationResult) {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setCurrentLocationResult(locationResult);
+        }
     }
 
     @Override

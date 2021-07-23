@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,6 +36,7 @@ public class Tab3 extends Fragment {
 
     private GoogleMap mMap;
     MapView mMapView;
+    private LocationResult locationResult;
 
     public Tab3() {
         // Required empty public constructor
@@ -72,29 +74,43 @@ public class Tab3 extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tab3, container, false);
 
+        if (getActivity() instanceof MainActivity) {
+            locationResult = ((MainActivity) getActivity()).getCurrentLocationResult();
+        }
         SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         supportMapFragment.getMapAsync(new OnMapReadyCallback() {
             @SuppressLint("MissingPermission")
             @Override
             public void onMapReady(GoogleMap googleMap) {
-                System.out.println("MAP IS READY");
                 mMap = googleMap;
                 mMap.setMyLocationEnabled(true);
-                mMap.setOnMyLocationChangeListener(location -> {
-                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    MarkerOptions markerOptions = new MarkerOptions();
-                    markerOptions.position(latLng);
 
-                    markerOptions.title("MY MARKER");
-                    mMap.clear();
-                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 15);
-                    mMap.animateCamera(cameraUpdate);
-                    mMap.addMarker(markerOptions);
-                });
+                //Get current lat,long
+                double latitude = locationResult.getLastLocation().getLatitude();
+                double longitude = locationResult.getLastLocation().getLongitude();
+
+                //Set as initial marker
+                LatLng latLng = new LatLng(latitude, longitude);
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(latLng);
+                markerOptions.title("My Location");
+                mMap.addMarker(markerOptions);
+
+                //Allow camera to move
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 15);
+                googleMap.animateCamera(cameraUpdate);
             }
         });
 
         return view;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+       /* if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).clearCurrentLocationResult();
+        }*/
     }
 
     public interface OnFragmentInteractionListener {

@@ -10,10 +10,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.viewpager.widget.ViewPager;
 
+import com.google.android.gms.location.LocationResult;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
-
-import java.util.ArrayList;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.READ_CONTACTS;
@@ -21,7 +20,7 @@ import static android.Manifest.permission.READ_CONTACTS;
 public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener, Tab4.OnFragmentInteractionListener {
 
     private static final int PERMISSIONS_REQUEST_CODE = 10001;
-    private ArrayList<Contact> contactsArrayList = new ArrayList<>();
+    private static LocationResult currentLocationResult;
 
     /**
      * Initialize home screen activity
@@ -85,10 +84,26 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
      * Start the tabbed and swipeable fragment view
      */
     public void startFragments() {
-        ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        ViewPager viewPager = findViewById(R.id.pager);
         PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(pagerAdapter);
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tablayout);
+        TabLayout tabLayout = findViewById(R.id.tablayout);
         tabLayout.setupWithViewPager(viewPager);
+    }
+
+    /**
+     * Set to update every time location updates in tab 2
+     * @param locationResult
+     */
+    public void setCurrentLocationResult(LocationResult locationResult) {
+        currentLocationResult = locationResult;
+    }
+
+    public LocationResult getCurrentLocationResult() {
+        return currentLocationResult;
+    }
+
+    public void clearCurrentLocationResult() {
+        currentLocationResult = null;
     }
 }

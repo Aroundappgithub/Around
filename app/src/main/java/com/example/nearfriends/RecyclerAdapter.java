@@ -97,9 +97,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyAdap
         public MyAdapterViewHolder(View itemView) {
             super(itemView);
             //Link each variable with respective UI component
-            contactName = (TextView) itemView.findViewById(R.id.contactName);
-            contactAddress = (TextView) itemView.findViewById(R.id.contactAddress);
-            contactGroup = (TextView) itemView.findViewById(R.id.contactGroup);
+            contactName = itemView.findViewById(R.id.contactName);
+            contactAddress = itemView.findViewById(R.id.contactAddress);
+            contactGroup = itemView.findViewById(R.id.contactGroup);
             //add starred listener functionality here?
             favoriteCheckbox = itemView.findViewById(R.id.favorite);
         }
