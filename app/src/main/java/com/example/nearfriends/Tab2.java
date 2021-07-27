@@ -75,6 +75,7 @@ public class Tab2 extends Fragment {
 
     //Contacts list with available contact address
     private ArrayList<Contact> userContactsList = new ArrayList<>();
+    private ArrayList<Contact> nearbyContactsList = new ArrayList<>();
 
     FusedLocationProviderClient fusedLocationProviderClient;
     LocationRequest locationRequest;
@@ -91,11 +92,8 @@ public class Tab2 extends Fragment {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             globalLocationResult = locationResult;
-            //Update current location in a bundle or [Tab 3] to retrieve
-            updateMainActivityLocationResult(locationResult);
             //check if user location changed more than the locationChangeThreshold, otherwise nearbyContactsList does not need to be updated
             if ((haversineFormula(myLastLat, myLastLong, locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude()) >= locationChangeThreshold)) {
-//                System.out.println("DISTANCE CHANGED COMPARING USER LOCATION TO CONTACT LOCATIONS");
                 if (locationResult == null) {
                     return;
                 }
@@ -114,10 +112,8 @@ public class Tab2 extends Fragment {
                 //Compare contact locations to my location
                 if (!userContactsList.isEmpty()) {
                     double range = rangeBar.getProgress();
+                    //Check within range contacts
                     ArrayList<Contact> nearbyContactsList = compareMyLocation(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), range);
-                    for (Contact contact : nearbyContactsList) {
-//                        System.out.println("NEARBY CONTACTS: " + contact.getName());
-                    }
                     RecyclerAdapter recyclerAdapter = new RecyclerAdapter(thisContext, nearbyContactsList);
                     recyclerView.setAdapter(recyclerAdapter);
                     recyclerAdapter.notifyDataSetChanged();
@@ -314,6 +310,9 @@ public class Tab2 extends Fragment {
                 }
             }
         }
+        //Update my location and nearby contacts list in main activity for tab 3 to retrieve
+        nearbyContactsList = inRangeContacts;
+        updateMainActivityLocationResult();
         return inRangeContacts;
     }
 
@@ -346,9 +345,9 @@ public class Tab2 extends Fragment {
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
     }
 
-    public void updateMainActivityLocationResult(LocationResult locationResult) {
+    public void updateMainActivityLocationResult() {
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).setCurrentLocationResult(locationResult);
+            ((MainActivity) getActivity()).setTabTwoData(globalLocationResult, nearbyContactsList);
         }
     }
 

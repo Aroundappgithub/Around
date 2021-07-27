@@ -14,13 +14,16 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
+import java.util.ArrayList;
+
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.READ_CONTACTS;
 
 public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener, Tab4.OnFragmentInteractionListener {
 
     private static final int PERMISSIONS_REQUEST_CODE = 10001;
-    private static LocationResult currentLocationResult;
+    private LocationResult currentLocationResult;
+    private ArrayList<Contact> nearbyContacts;
 
     /**
      * Initialize home screen activity
@@ -93,14 +96,20 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
 
     /**
      * Set to update every time location updates in tab 2
+     *
      * @param locationResult
      */
-    public void setCurrentLocationResult(LocationResult locationResult) {
+    public void setTabTwoData(LocationResult locationResult, ArrayList<Contact> nearbyContactsList) {
         currentLocationResult = locationResult;
+        nearbyContacts = nearbyContactsList;
     }
 
     public LocationResult getCurrentLocationResult() {
         return currentLocationResult;
+    }
+
+    public ArrayList<Contact> getNearbyContacts() {
+        return nearbyContacts;
     }
 
     public void clearCurrentLocationResult() {
