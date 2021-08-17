@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
      * @param locationResult
      */
     public void setTabTwoData(LocationResult locationResult, ArrayList<Contact> nearbyContactsList) {
+//        nearbyContacts = new ArrayList<>();
         currentLocationResult = locationResult;
         nearbyContacts = nearbyContactsList;
     }
@@ -112,7 +113,10 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
         return nearbyContacts;
     }
 
-    public void clearCurrentLocationResult() {
-        currentLocationResult = null;
-    }
+    /*public void clearCurrentLocationResult() {
+        if (nearbyContacts != null || currentLocationResult != null) {
+            currentLocationResult = null;
+            nearbyContacts.clear();
+        }
+    }*/
 }

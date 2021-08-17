@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.CameraUpdate;
@@ -77,7 +78,7 @@ public class Tab3 extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tab3, container, false);
 
-        //Get my current location
+        /*//Get my current location
         if (getActivity() instanceof MainActivity) {
             if (((MainActivity) getActivity()).getCurrentLocationResult() != null) {
                 locationResult = ((MainActivity) getActivity()).getCurrentLocationResult();
@@ -123,14 +124,73 @@ public class Tab3 extends Fragment {
                     }
                 }
             }
-        });
+        });*/
 
         return view;
     }
 
     @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            System.out.println("millad " + isVisibleToUser);
+            //Get my current location
+            if (getActivity() instanceof MainActivity) {
+                if (((MainActivity) getActivity()).getCurrentLocationResult() != null) {
+                    locationResult = ((MainActivity) getActivity()).getCurrentLocationResult();
+                }
+
+                //Get nearby contact information (within progress bar range)
+                if (((MainActivity) getActivity()).getNearbyContacts() != null) {
+                    nearbyContactsList = ((MainActivity) getActivity()).getNearbyContacts();
+                }
+            }
+
+            SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+            supportMapFragment.getMapAsync(new OnMapReadyCallback() {
+                @SuppressLint("MissingPermission")
+                @Override
+                public void onMapReady(GoogleMap googleMap) {
+                    mMap = googleMap;
+                    mMap.setMyLocationEnabled(true);
+
+                    //Get current lat,long
+                    if (locationResult != null) {
+                        double latitude = locationResult.getLastLocation().getLatitude();
+                        double longitude = locationResult.getLastLocation().getLongitude();
+
+                        //Set as initial marker
+                        LatLng latLng = new LatLng(latitude, longitude);
+                        MarkerOptions markerOptions = new MarkerOptions();
+                        markerOptions.position(latLng);
+                        markerOptions.title("My Location");
+                        mMap.addMarker(markerOptions);
+
+                        //Allow camera to move
+                        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
+                        mMap.animateCamera(cameraUpdate);
+                    } else {
+                        Toast.makeText(getContext(), "Unable to place current location marker", Toast.LENGTH_LONG).show();
+                    }
+
+                    if (nearbyContactsList != null && !nearbyContactsList.isEmpty()) {
+                        for (Contact contact : nearbyContactsList) {
+                            mMap.addMarker(new MarkerOptions().position(new LatLng(contact.getLatitude().getAsDouble(), contact.getLongitude().getAsDouble())).title(contact.getName()));
+                        }
+                    }
+                }
+            });
+        } else {
+            if (mMap != null) {
+                mMap.clear();
+            }
+        }
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
+        mMap.clear();
        /* if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).clearCurrentLocationResult();
         }*/

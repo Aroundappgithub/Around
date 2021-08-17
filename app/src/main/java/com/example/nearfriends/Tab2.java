@@ -1,12 +1,19 @@
 package com.example.nearfriends;
 
 import android.annotation.SuppressLint;
+import android.app.FragmentTransaction;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,6 +25,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -97,7 +107,8 @@ public class Tab2 extends Fragment {
                 if (locationResult == null) {
                     return;
                 }
-                //Set up user current city to display at the top of tab 2
+
+                //Set up device user's current city to display at the top of tab 2
                 try {
                     List<Address> myCity = geocoder.getFromLocation(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), 1);
                     if (myCity.isEmpty()) {
@@ -109,14 +120,19 @@ public class Tab2 extends Fragment {
                     e.printStackTrace();
                 }
                 currentCity.setText(currentCityString);
+
                 //Compare contact locations to my location
                 if (!userContactsList.isEmpty()) {
                     double range = rangeBar.getProgress();
                     //Check within range contacts
-                    ArrayList<Contact> nearbyContactsList = compareMyLocation(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), range);
-                    RecyclerAdapter recyclerAdapter = new RecyclerAdapter(thisContext, nearbyContactsList);
+                    ArrayList<Contact> currentNearbyContactsList = nearbyContactsList;
+                    ArrayList<Contact> locationResultNearbyContactsList = compareMyLocation(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), range);
+                    RecyclerAdapter recyclerAdapter = new RecyclerAdapter(thisContext, locationResultNearbyContactsList);
                     recyclerView.setAdapter(recyclerAdapter);
                     recyclerAdapter.notifyDataSetChanged();
+                    if (!currentNearbyContactsList.equals(locationResultNearbyContactsList)) {
+                        systemNotifyUser(currentNearbyContactsList);
+                    }
                 } else {
                     Toast.makeText(getContext(), "Waiting for contacts list to populate...", Toast.LENGTH_LONG).show();
                 }
@@ -198,10 +214,14 @@ public class Tab2 extends Fragment {
                 rangeText.setText(progress + " mi");
                 //update nearby contact list
                 if (!userContactsList.isEmpty() && globalLocationResult != null) {
+                    ArrayList<Contact> currentNearbyContactsList = nearbyContactsList;
                     ArrayList<Contact> onSeekBarChangeNearbyContactList = compareMyLocation(globalLocationResult.getLastLocation().getLatitude(), globalLocationResult.getLastLocation().getLongitude(), rangeBar.getProgress());
                     RecyclerAdapter onSeekBarChangeRecyclerAdapter = new RecyclerAdapter(thisContext, onSeekBarChangeNearbyContactList);
                     recyclerView.setAdapter(onSeekBarChangeRecyclerAdapter);
                     onSeekBarChangeRecyclerAdapter.notifyDataSetChanged();
+                    if (!currentNearbyContactsList.equals(onSeekBarChangeNearbyContactList)) {
+                        systemNotifyUser(currentNearbyContactsList);
+                    }
                 }
             }
 
@@ -231,9 +251,13 @@ public class Tab2 extends Fragment {
                     fetchContacts();
                     mainHandler.post(() -> {
                         if (globalLocationResult != null) {
+                            ArrayList<Contact> currentNearbyContactsList = nearbyContactsList;
                             ArrayList<Contact> onThreadCompleteNearbyContactsList = compareMyLocation(globalLocationResult.getLastLocation().getLatitude(), globalLocationResult.getLastLocation().getLongitude(), rangeBar.getProgress());
                             RecyclerAdapter onThreadCompleteRecyclerAdapter = new RecyclerAdapter(thisContext, onThreadCompleteNearbyContactsList);
                             recyclerView.setAdapter(onThreadCompleteRecyclerAdapter);
+                            if (!currentNearbyContactsList.equals(onThreadCompleteNearbyContactsList)) {
+                                systemNotifyUser(currentNearbyContactsList);
+                            }
                         }
                     });
                 }).start();
@@ -345,9 +369,55 @@ public class Tab2 extends Fragment {
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
     }
 
+    //update my location and nearby contacts list in the MainActivity.java for tab 3 to retrieve
     public void updateMainActivityLocationResult() {
         if (getActivity() instanceof MainActivity) {
+//            ((MainActivity) getActivity()).clearCurrentLocationResult();
             ((MainActivity) getActivity()).setTabTwoData(globalLocationResult, nearbyContactsList);
+        }
+    }
+
+    /**
+     * Compare current nearby contacts list to new nearby contacts list and send a system
+     * notification with new nearby contacts.
+     */
+    private void systemNotifyUser(ArrayList<Contact> currentNearbyContacts) {
+        ArrayList<Contact> newNearbyContactsList = new ArrayList<>();
+        for (Contact a : nearbyContactsList) {
+            newNearbyContactsList.add(a);
+        }
+        //Prune newNearbyContactsList for unique contacts
+        for (Contact con : currentNearbyContacts) {
+            if (newNearbyContactsList.contains(con)) {
+                newNearbyContactsList.remove(newNearbyContactsList.indexOf(con));
+            }
+        }
+
+        //Android version greater than Oreo must create a notification channel
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel("channel1", "Nearby contact(s)", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationManager notificationManager = getActivity().getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+        //Send notification for only unique contacts
+        if (newNearbyContactsList.size() == 1) {
+//            Intent textIntent = new Intent()
+
+            Notification notification = new NotificationCompat.Builder(thisContext, "channel1")
+                    .setSmallIcon(R.drawable.ic_baseline_group_add_24)
+                    .setContentTitle("Around")
+                    .setContentText(newNearbyContactsList.get(0).getName() + " is nearby!")
+                    .build();
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getActivity());
+            notificationManagerCompat.notify(1, notification);
+        } else if (newNearbyContactsList.size() > 1) {
+            Notification notification = new NotificationCompat.Builder(thisContext, "channel1")
+                    .setSmallIcon(R.drawable.ic_baseline_group_add_24)
+                    .setContentTitle("Around")
+                    .setContentText("New contacts nearby!")
+                    .build();
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getActivity());
+            notificationManagerCompat.notify(1, notification);
         }
     }
 

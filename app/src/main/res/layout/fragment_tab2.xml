@@ -51,7 +51,7 @@
             android:layout_marginTop="10dp"
             android:padding="5dp"
             android:max="40"
-            android:progress="10"
+            android:progress="1"
             android:id="@+id/rangeBar"
             android:layout_toStartOf="@+id/rangeText"/>
     </LinearLayout>
